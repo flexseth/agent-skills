@@ -165,21 +165,21 @@ Sanitize a nonce before passing it to `wp_verify_nonce()`: `sanitize_text_field(
    * _wpnonce[]) is passed through unchecked, and PHPCS flags the unsanitized
    * read. The result is also never checked, so the handler runs even when the
    * nonce is invalid.
-   */
-  wp_verify_nonce( $_POST['_wpnonce'], 'myplugin_save' );
-  update_option( 'myplugin_color', sanitize_text_field( wp_unslash( $_POST['color'] ?? '' ) ) );
+*/
+wp_verify_nonce( $_POST['_wpnonce'], 'myplugin_save' );
+update_option( 'myplugin_color', sanitize_text_field( wp_unslash( $_POST['color'] ?? '' ) ) );
 
-  // Safe: unslash and sanitize the nonce, then stop the request if it fails.
-  $nonce = sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ?? '' ) );
-  if ( ! wp_verify_nonce( $nonce, 'myplugin_save' ) ) {
-      wp_die( esc_html__( 'Invalid request.', 'myplugin' ), '', array( 'response' => 403 ) );
-  }
-  update_option( 'myplugin_color', sanitize_text_field( wp_unslash( $_POST['color'] ?? '' ) ) );
+// Safe: unslash and sanitize the nonce, then stop the request if it fails.
+$nonce = sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ?? '' ) );
+if ( ! wp_verify_nonce( $nonce, 'myplugin_save' ) ) {
+	wp_die( esc_html__( 'Invalid request.', 'myplugin' ), '', array( 'response' => 403 ) );
+}
+update_option( 'myplugin_color', sanitize_text_field( wp_unslash( $_POST['color'] ?? '' ) ) );
 
-  // Also safe, and simpler: these functions read and verify the request nonce
-  // themselves, and stop the request on failure, so there is nothing to sanitize.
-  check_admin_referer( 'myplugin_save' );      // Admin forms and admin-post.php.
-  check_ajax_referer( 'myplugin_save' );       // admin-ajax.php handlers.
+// Also safe, and simpler: these functions read and verify the request nonce
+// themselves, and stop the request on failure, so there is nothing to sanitize.
+check_admin_referer( 'myplugin_save' );      // Admin forms and admin-post.php.
+check_ajax_referer( 'myplugin_save' );       // admin-ajax.php handlers.
 ```
 
 **Attack methodology**
