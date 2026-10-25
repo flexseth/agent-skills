@@ -1,6 +1,37 @@
 # Security Guardrails for Plugin Development
 
-Use this file when making security fixes or when a change handles input, output, SQL, REST/AJAX requests, files, external services, or plugin lifecycle state.
+Consult this **security reference** when addressing security fixes or hardening plugin security.
+
+**Displaying data and handling input**
+- sanitizing, validating, and allowlisting input
+- escaping output late
+- and rendering shortcode, dynamic block, and filter callback output
+
+**Database operations**
+- preparing data for CRUD
+- safely handling dynamic SQL queries
+- working with user-controlled tables
+- and considering raw SQL imports
+
+**REST/AJAX requests**
+- checking authorization and CSRF protection together
+- registering REST routes and abilities with a `permission_callback`
+- handling `wp_ajax_nopriv_*` requests
+- and failing closed when a security check fails
+
+**Files**
+- executing or including code
+- handling uploads
+- and writing outside the plugin's uploads subdirectory
+
+**External services**
+- documenting external services in the readme
+- and sourcing credentials from platform APIs
+
+**Plugin lifecycle state**
+- using sessions and global PHP configuration
+- changing plugins, themes, or updates
+- and cleaning up on activation, deactivation, and uninstall
 
 Each section separates three kinds of rule:
 
