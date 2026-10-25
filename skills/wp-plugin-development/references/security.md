@@ -275,6 +275,12 @@ Assess each weakness by what it unlocks in combination, not in isolation. A "low
 
 When fixing a finding, check what else reaches the same data, sink, or file, and close every link, not just the one reported.
 
+## Final Pass Review
+- [ ] **Checklist** Ensure all security checklist items are addressed and properly implemented.
+- [ ] **Edge Cases** Verify that all edge cases have been noted for review and not implemented.
+- [ ] **PCP** Run the code through the Plugin Check Plugin's CLI tool to catch any remaining issues. Any findings should be addressed before finalizing the review, and security sniff ignores should be documented and justified.
+- [ ] **PCP CLI** Add code for running the Plugin Check Plugin's CLI tool.
+
 Common review guidance:
 
 - https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/
