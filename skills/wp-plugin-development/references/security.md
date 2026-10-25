@@ -269,9 +269,26 @@ wp_delete_file( $target );
 
 ## External Services, Credentials, and Privileged State
 
+### Third-Party Service Usage and Privacy
+
 **Required**
 
-- Document every fixed third-party service the plugin contacts in the plugin readme: what the service is, what it is used for, what data is sent and when, and links to its Terms of Service and/or Privacy Policy. For the directory consent and SaaS rules, see the `wp-plugin-directory-guidelines` skill (Guidelines 6–8).
+Contacting and interacting with third party services requires careful handling of data and user consent.
+
+When using third-party services, transparency should be a first-class citizen, not an afterthought.
+
+Document every fixed third-party the plugin contacts in the plugin readme: 
+- what the service is
+- what it is used for
+- what data is sent and when
+- provide links to its Terms of Service and/or Privacy Policy
+
+Refer to and strictly adhere to consent and SaaS rules, as outlined in the Plugin Directory Guidelines.
+
+Upstream reference:
+- Guideline 7: [No External Data Collection Without Consent](https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#7-plugins-may-not-track-users-without-their-consent)
+- Guideline 6: [SaaS Integrations Are Allowed – With Conditions](https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/#6-saas-integrations-are-allowed--with-conditions)
+
 - Use `wp_safe_remote_get()` / `wp_safe_remote_post()` when a URL comes from input or settings. They reject local and private-network hosts, which blocks server-side request forgery.
 - Never disable TLS verification (`'sslverify' => false`) in shipped code.
 - Redirect with `wp_safe_redirect()` followed by `exit`, so request-supplied URLs can't send users to other hosts. Allow extra hosts through the `allowed_redirect_hosts` filter.
