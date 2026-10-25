@@ -1,4 +1,4 @@
-# Security guardrails (plugin work)
+# Security Guardrails for Plugin Development
 
 Use this file when making security fixes or when a change handles input, output, SQL, REST/AJAX requests, files, external services, or plugin lifecycle state.
 
@@ -27,7 +27,7 @@ Work through the sections that apply to the change:
 - [ ] External services are documented in the readme; credentials come from platform APIs.
 - [ ] No global sessions, global PHP config changes, or silent plugin/theme/update changes.
 
-## Request authorization and REST endpoints
+## Request Authorization and REST Endpoints
 
 Nonces help prevent CSRF; they are not authorization. Capability checks are authorization; they do not stop CSRF. Privileged actions, sensitive-data disclosure, and persistent writes need both.
 
@@ -72,7 +72,7 @@ Upstream reference:
 - https://developer.wordpress.org/apis/security/nonces/
 - https://developer.wordpress.org/rest-api/extending-the-rest-api/adding-custom-endpoints/#permissions-callback
 
-## Inputs: sanitization is not authorization or allowlisting
+## Inputs: Sanitization is Not Authorization or Allowlisting
 
 **Required**
 
@@ -104,7 +104,7 @@ if ( ! isset( $options[ $key ] ) ) {
 update_option( $options[ $key ], sanitize_text_field( wp_unslash( $_POST['value'] ?? '' ) ) );
 ```
 
-## Output and SQL
+## Output and SQL Escaping
 
 ### Escaping
 
@@ -175,7 +175,7 @@ $wpdb->get_results(
 
 - Raw SQL imports for backup or migration features, limited to files the plugin itself produced or an administrator explicitly supplied, behind a capability check and nonce. Never execute SQL strings taken from request parameters.
 
-## Code execution, uploads, and files
+## Code Execution, Uploads, and Files
 
 **Prohibited**
 
@@ -234,7 +234,7 @@ wp_delete_file( $target );
 - Root-level files that an integration requires (for example, a service verification file), created only on an explicit administrator action.
 - SVG uploads, only when sanitized server-side by a maintained sanitizer.
 
-## External services, credentials, and privileged state
+## External Services, Credentials, and Privileged State
 
 **Required**
 
@@ -250,7 +250,7 @@ Upstream reference:
 
 - https://make.wordpress.org/core/2026/03/24/introducing-the-ai-client-in-wordpress-7-0/
 
-## Operational and lifecycle safeguards
+## Operational and Lifecycle Safeguards
 
 **Required**
 
@@ -264,7 +264,7 @@ Upstream reference:
 - Plugin- or theme-management features that act only on an explicit administrator action, with capability checks (`install_plugins`, `activate_plugins`, `switch_themes`) and nonces.
 - A plugin deactivating itself when its own requirements are not met, to prevent errors.
 
-## Chained vulnerabilities
+## Chained Vulnerabilities
 
 Assess each weakness by what it unlocks in combination, not in isolation. A "low-severity" gap is often one link in a full site takeover:
 
