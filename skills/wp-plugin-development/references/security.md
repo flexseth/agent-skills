@@ -35,7 +35,7 @@ Consult this **security reference** when addressing security fixes or hardening 
 
 ## Rule Types
 
-Each section separates three kinds of rule:
+Sequential guidelines for plugin security.
 
 - **Prohibited**: do not implement, whatever the justification.
 - **Required**: safeguards every implementation must have.
