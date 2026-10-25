@@ -11,6 +11,7 @@ Consult this **security reference** when addressing security fixes or hardening 
 - preparing data for CRUD
 - safely handling dynamic SQL queries
 - working with user-controlled tables
+- prohibit use of PHP database extensions such as `mysqli` or `PDO`
 - and considering raw SQL imports
 
 **REST/AJAX requests**
@@ -152,7 +153,9 @@ Security bulletins:
   
   Fix: authorize the request *and* map the request value to a fixed list of option names.
 
-- **Attacker-chosen option name → persistent redirect or injected content.** Even without escalation, the attacker can overwrite `siteurl` or `home` to take the site offline, or overwrite an option the theme prints, which gives them stored XSS. Fix: the same fixed map, plus escaping at output.
+- **Attacker-chosen option name → persistent redirect or injected content.** Even without escalation, the attacker can overwrite `siteurl` or `home` to take the site offline, or overwrite an option the theme prints, which gives them stored XSS. 
+
+  Fix: the same fixed map, plus escaping at output.
 
 ### Sanitizing Nonces
 
@@ -227,19 +230,60 @@ Security Bulletins:
 
 ### Escaping
 
+**Required**
+
 Escape late, at output, using the function that matches the context:
 
-* HTML text: `esc_html()`
-* HTML attribute: `esc_attr()`
-* URL: `esc_url()`
-* textarea: `esc_textarea()`
-* JavaScript strings: `esc_js()`
+- HTML text: `esc_html()`
+- HTML attribute: `esc_attr()`
+- URL: `esc_url()`
+- Textarea: `esc_textarea()`
+- JavaScript strings: `esc_js()`
+
+#### Internationalization (i18n) and Localization (l10n)
+
+**Required** 
+
+When printing fixed, user-facing text that you write in plugin code, translate and escape it in a single call. Never output the unescaped result of a translation function such as `__()` or `_e()`. Choose the function by output context:
+
+- `esc_html__()` / `esc_html_e()` / `esc_html_x()` for HTML text
+- `esc_attr__()` / `esc_attr_e()` / `esc_attr_x()` for attributes
+
+```php
+// Unsafe: nothing escapes the translation.
+echo __( 'Settings saved.', 'myplugin' );
+_e( 'Settings saved.', 'myplugin' );
+
+// Safe: translate and escape in one call.
+echo esc_html__( 'Settings saved.', 'myplugin' );
+esc_html_e( 'Settings saved.', 'myplugin' );
+```
+
+WordPress has no combined translate-and-escape functions for other contexts. Wrap the translation function in the matching escaping function:
+
+- URLs: `esc_url( __( 'https://example.com/help', 'myplugin' ) )`
+- Textareas: `esc_textarea( __( 'Default text', 'myplugin' ) )`
+- JavaScript strings: pass translated strings through `wp_localize_script()` or `wp_json_encode()`, or use `wp_set_script_translations()` with `@wordpress/i18n`, instead of `esc_js()`.
+
+Escape dynamic values separately, and put them in `printf()` placeholders instead of concatenating them into the translatable string.
+```php
+// Unsafe: dynamic value concatenated into the translatable string.
+printf( '<input placeholder="%s">', esc_attr__( 'Search', 'myplugin' ) );
+
+// Translation functions with placeholders: escape the dynamic values too, and put the placeholder in the translated string:
+// Safe: dynamic value escaped separately.
+printf( esc_html__( 'Hello, %s', 'myplugin' ), esc_html( $name ) );
+```
 
 For JSON data, prefer `wp_json_encode()` and pass data through WordPress script APIs such as `wp_add_inline_script()` or `wp_localize_script()`.
 
 For user-provided HTML, restrict allowed markup with `wp_kses_post()` or `wp_kses()` before output.
 
-Escape the output of callbacks that render into content: shortcodes, dynamic block `render_callback` / `render.php`, and filters on `the_content`, `the_title`, or `render_block`. Contributors can insert shortcodes and blocks, so their attributes are untrusted.
+Escape the output of callbacks that render into content:
+- Shortcodes
+- Dynamic blocks - `render_callback` / `render.php`
+- Filters on `the_content`, `the_title`, or `render_block`
+- Contributors can insert shortcodes and blocks, so their attributes are untrusted.
 
 ```php
 // Unsafe: attributes printed raw, and the shortcode echoes instead of returning.
@@ -260,12 +304,22 @@ add_shortcode( 'myplugin_badge', static function ( $atts ) {
 
 ### SQL
 
+**Prohibited**
+
+- Concatenating user input directly into SQL queries.
+- Using dynamic table or column names from user input without allowlisting.
+- Executing raw SQL from request parameters without proper validation and escaping.
+- Use of PHP database extensions such as `mysqli_*` or `PDO` directly instead of the WordPress `$wpdb` abstraction.
+
+
 **Required**
 
+Database operations
+
 - Use `$wpdb->prepare()` for every dynamic value; never concatenate input into SQL.
+- Prefer `$wpdb->insert()` / `$wpdb->update()` / `$wpdb->delete()` with a formats array for simple writes.
 - Generate one placeholder per item in a dynamic list, and handle an empty list before querying.
 - Treat table names, column names, `ORDER BY` keys, and other identifiers from the request as unsafe unless they come from an allowlist. Pass allowlisted identifiers through `%i` (WordPress 6.2+). If the plugin's `Requires at least` is below 6.2, interpolate only the allowlisted constant value.
-- Prefer `$wpdb->insert()` / `$wpdb->update()` / `$wpdb->delete()` with a formats array for simple writes.
 
 ```php
 // Unsafe: sanitized, but identifier and list are still interpolated from the request.
@@ -282,6 +336,7 @@ if ( ! $ids ) {
 	return array();
 }
 $in = implode( ', ', array_fill( 0, count( $ids ), '%d' ) );
+// Safely prepare and execute the SQL query with placeholders and allowlisted identifiers.
 $wpdb->get_results(
 	$wpdb->prepare(
 		"SELECT * FROM %i WHERE id IN ($in) ORDER BY %i $order",
