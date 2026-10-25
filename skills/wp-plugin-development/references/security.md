@@ -33,6 +33,8 @@ Consult this **security reference** when addressing security fixes or hardening 
 - changing plugins, themes, or updates
 - and cleaning up on activation, deactivation, and uninstall
 
+## Rule Types
+
 Each section separates three kinds of rule:
 
 - **Prohibited**: do not implement, whatever the justification.
