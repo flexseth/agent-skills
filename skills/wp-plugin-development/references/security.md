@@ -118,7 +118,8 @@ Never treat sanitization as authorization.
 ### Validate and Sanitize Input
 
 **Required**
-`sanitize_key()` or `sanitize_text_field()` makes a value well-formed; it does not make it safe to *choose* which option, table, file, callback, or capability the code acts on. For those, use an allowlist.
+
+Understand that `sanitize_key()` or `sanitize_text_field()` makes a value well-formed; it does not make it safe to *choose* which option, table, file, callback, or capability the code acts on. For those, use an allowlist.
 
 Validate and sanitize input before storing it, displaying it, or passing it to a function whose behavior you don't control (hooks, third-party APIs).
 
@@ -237,7 +238,7 @@ Security Bulletins:
 
 ## Output and SQL Escaping
 
-### Escaping
+### Escaping Output
 
 **Required**
 
@@ -311,7 +312,7 @@ add_shortcode( 'myplugin_badge', static function ( $atts ) {
 } );
 ```
 
-### SQL
+### SQL Escaping
 
 **Prohibited**
 
