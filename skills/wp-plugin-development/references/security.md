@@ -426,6 +426,17 @@ $wpdb->get_results(
 );
 ```
 
+**Attack methodology**
+
+SQL injection
+
+Security bulletins:
+- CWE-89, Improper Neutralization of Special Elements used in an SQL Command (SQL Injection)
+- OWASP A03:2021, Injection
+
+- **Uncast value or list → SQL injection → credential disclosure.** The attacker sends `ids=1) UNION SELECT user_pass FROM wp_users -- `. Sanitization does not help, because `sanitize_text_field()` strips tags but keeps SQL keywords. The query returns password hashes in a field the page prints, and they can be cracked offline. Fix: cast every item with `absint()` *and* use one `%d` placeholder per item.
+- **Request-chosen identifier → data exposure.** The attacker passes a subquery as `orderby`, and the order of the results reveals data one comparison at a time. Fix: an allowlist, plus `%i` for the identifier.
+
 **Exceptions**
 
 - Raw SQL imports for backup or migration features, limited to files the plugin itself produced or an administrator explicitly supplied, behind a capability check and nonce.
