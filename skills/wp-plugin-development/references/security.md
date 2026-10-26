@@ -236,9 +236,7 @@ Security Bulletins:
 - Do not run passwords, signatures, tokens, or secrets through sanitizers that change them (`sanitize_text_field()` strips characters). Unslash them, use them only for their purpose (hash, compare with `hash_equals()`, send in a header), and never echo or log them.
 ### /todo
 
-## Output and SQL Escaping
-
-### Escaping Output
+## Escaping Output
 
 **Required**
 
@@ -250,7 +248,7 @@ Escape late, at output, using the function that matches the context:
 - Textarea: `esc_textarea()`
 - JavaScript strings: `esc_js()`
 
-#### Internationalization (i18n) and Localization (l10n)
+### Internationalization (i18n) and Localization (l10n)
 
 **Required** 
 
@@ -289,6 +287,7 @@ For JSON data, prefer `wp_json_encode()` and pass data through WordPress script 
 
 For user-provided HTML, restrict allowed markup with `wp_kses_post()` or `wp_kses()` before output.
 
+### Escaping Callback Output
 Escape the output of callbacks that render into content:
 - Shortcodes
 - Dynamic blocks - `render_callback` / `render.php`
@@ -312,7 +311,7 @@ add_shortcode( 'myplugin_badge', static function ( $atts ) {
 } );
 ```
 
-### SQL Escaping
+## Database Operations
 
 **Prohibited**
 
