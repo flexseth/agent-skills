@@ -514,6 +514,54 @@ add_action( 'admin_post_myplugin_import', static function () {
 } );
 ```
 
+Shows: an import file the administrator supplies. The administrator vouches for it, so there is no signature to check, but WordPress handles the upload, only an SQL file is accepted, and the file is deleted after the import.
+
+```php
+// Unsafe: any logged-in user can upload, and the temporary file is read as it arrives, whatever its type.
+add_action( 'admin_post_myplugin_upload_import', static function () {
+	global $wpdb;
+	$sql = file_get_contents( $_FILES['import']['tmp_name'] );
+	foreach ( myplugin_split_statements( $sql ) as $statement ) {
+		$wpdb->query( $statement );
+	}
+} );
+
+// Safe: nonce and capability first, then wp_handle_upload() with a type allowlist.
+add_action( 'admin_post_myplugin_upload_import', static function () {
+	check_admin_referer( 'myplugin_upload_import' );
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( esc_html__( 'Operation not allowed.', 'myplugin' ), '', array( 'response' => 403 ) );
+	}
+	if ( ! isset( $_FILES['import'] ) ) {
+		wp_die( esc_html__( 'No file uploaded.', 'myplugin' ), '', array( 'response' => 400 ) );
+	}
+
+	// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- wp_handle_upload() validates the upload.
+	$upload = wp_handle_upload(
+		$_FILES['import'],
+		array(
+			'test_form' => false,
+			'mimes'     => array( 'sql' => 'text/plain' ),
+		)
+	);
+	if ( isset( $upload['error'] ) ) {
+		wp_die( esc_html( $upload['error'] ), '', array( 'response' => 400 ) );
+	}
+
+	$sql = file_get_contents( $upload['file'] );
+	wp_delete_file( $upload['file'] );
+	if ( false === $sql ) {
+		wp_die( esc_html__( 'The file could not be read.', 'myplugin' ), '', array( 'response' => 400 ) );
+	}
+
+	global $wpdb;
+	foreach ( myplugin_split_statements( $sql ) as $statement ) {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared -- Administrator-supplied import, nonce and capability checked.
+		$wpdb->query( $statement );
+	}
+} );
+```
+
 **Attack methodology**
 
 Unverified backup import
