@@ -328,6 +328,22 @@ add_shortcode( 'myplugin_badge', static function ( $atts ) {
 - Generate one placeholder per item in a dynamic list, and handle an empty list before querying.
 - Treat table names, column names, `ORDER BY` keys, and other identifiers from the request as unsafe unless they come from an allowlist. Pass allowlisted identifiers through `%i` (WordPress 6.2+). If the plugin's `Requires at least` is below 6.2, interpolate only the allowlisted constant value.
 
+Shows: use `$wpdb` and the WordPress database APIs, never PHP database extensions such as `mysqli_*` or `PDO`.
+
+```php
+// $item_id holds the unslashed, sanitized request value.
+
+// Unsafe: not an injection, but a separate connection. The credentials are hardcoded in the plugin, and
+// the table prefix is hardcoded, so the query ignores the site's settings and multisite tables.
+$db   = new mysqli( 'localhost', 'root', 'password', 'wordpress' );
+$stmt = $db->prepare( 'DELETE FROM wp_myplugin_items WHERE id = ?' );
+$stmt->bind_param( 'i', $item_id );
+$stmt->execute();
+
+// Safe: $wpdb is already connected with the site's settings and prefix.
+$wpdb->delete( $wpdb->prefix . 'myplugin_items', array( 'id' => $item_id ), array( '%d' ) );
+```
+
 Shows: use `$wpdb->prepare()` for every dynamic value, and prefer `$wpdb->insert()` / `update()` / `delete()` with a formats array for simple writes.
 
 ```php
