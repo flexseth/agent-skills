@@ -39,15 +39,13 @@ Consult this **security reference** when
 - changing plugins, themes, or updates
 - cleaning up on activation, deactivation, and uninstall
 
-## Rule Types
+## How to Apply These Rules
 
-Sequential guidelines for plugin security.
+Rules are listed in the order in which you would apply them while building a plugin, and each section labels its rules as follows:
 
 - **Prohibited**: do not implement, whatever the justification.
 - **Required**: safeguards every implementation must have.
 - **Exceptions**: narrow cases that are allowed only with an explicit functional justification, documented in code (and in the readme when users are affected).
-
-The most common mistake is treating sanitization as authorization. `sanitize_key()` or `sanitize_text_field()` makes a value well-formed; it does not make it safe to *choose* which option, table, file, callback, or capability the code acts on. For those, use an allowlist.
 
 ## Checklist
 
@@ -113,9 +111,15 @@ Upstream reference:
 
 ## Inputs: Sanitization is Not Authorization or Allowlisting
 
-**Required**
+**Prohibited** 
+
+Never treat sanitization as authorization. 
 
 ### Validate and Sanitize Input
+
+**Required**
+`sanitize_key()` or `sanitize_text_field()` makes a value well-formed; it does not make it safe to *choose* which option, table, file, callback, or capability the code acts on. For those, use an allowlist.
+
 Validate and sanitize input before storing it, displaying it, or passing it to a function whose behavior you don't control (hooks, third-party APIs).
 
 Never process a whole `$_POST` / `$_GET` / `$_REQUEST` array; read explicit keys and apply `wp_unslash()` before sanitizing:
