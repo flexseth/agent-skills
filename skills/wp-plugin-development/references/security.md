@@ -317,13 +317,12 @@ add_shortcode( 'myplugin_badge', static function ( $atts ) {
 
 - Concatenating user input directly into SQL queries.
 - Using dynamic table or column names from user input without allowlisting.
-- Executing raw SQL from request parameters without proper validation and escaping.
-- Use of PHP database extensions such as `mysqli_*` or `PDO` directly instead of the WordPress `$wpdb` abstraction.
-
+- Executing SQL taken from request parameters.
+- Using PHP database extensions such as `mysqli_*` or `PDO` directly, instead of the WordPress `$wpdb` abstraction.
 
 **Required**
 
-Database operations
+SQL Queries, Prepared Statements, and Allowlisting:
 
 - Use `$wpdb->prepare()` for every dynamic value; never concatenate input into SQL.
 - Prefer `$wpdb->insert()` / `$wpdb->update()` / `$wpdb->delete()` with a formats array for simple writes.
@@ -356,7 +355,7 @@ $wpdb->get_results(
 
 **Exceptions**
 
-- Raw SQL imports for backup or migration features, limited to files the plugin itself produced or an administrator explicitly supplied, behind a capability check and nonce. Never execute SQL strings taken from request parameters.
+- Raw SQL imports for backup or migration features, limited to files the plugin itself produced or an administrator explicitly supplied, behind a capability check and nonce.
 
 ## Code Execution, Uploads, and Files
 
