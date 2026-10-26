@@ -173,12 +173,12 @@ Sanitize a nonce before passing it to `wp_verify_nonce()`: `sanitize_text_field(
 
 ```php
 /*
-   * Unsafe: the raw superglobal goes straight into wp_verify_nonce(). A missing
-   * key raises an undefined-index warning, a non-string value (an array sent as
-   * _wpnonce[]) is passed through unchecked, and PHPCS flags the unsanitized
-   * read. The result is also never checked, so the handler runs even when the
-   * nonce is invalid.
-*/
+ * Unsafe: the raw superglobal goes straight into wp_verify_nonce(). A missing
+ * key raises an undefined-index warning, a non-string value (an array sent as
+ * _wpnonce[]) is passed through unchecked, and PHPCS flags the unsanitized
+ * read. The result is also never checked, so the handler runs even when the
+ * nonce is invalid.
+ */
 wp_verify_nonce( $_POST['_wpnonce'], 'myplugin_save' );
 update_option( 'myplugin_color', sanitize_text_field( wp_unslash( $_POST['color'] ?? '' ) ) );
 
