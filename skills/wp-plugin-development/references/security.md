@@ -464,6 +464,23 @@ add_action( 'wp_ajax_nopriv_myplugin_import', static function () {
 	$wpdb->query( wp_unslash( $_POST['sql'] ?? '' ) );
 } );
 
+// Unsafe: the nonce and capability are checked, but the file in uploads is trusted as it is.
+// Anyone who can write to that folder can replace it with their own SQL.
+add_action( 'admin_post_myplugin_import', static function () {
+	check_admin_referer( 'myplugin_import' );
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( esc_html__( 'Operation not allowed.', 'myplugin' ), '', array( 'response' => 403 ) );
+	}
+
+	$uploads = wp_upload_dir();
+	$sql     = file_get_contents( trailingslashit( $uploads['basedir'] ) . 'myplugin/backup.sql' );
+
+	global $wpdb;
+	foreach ( myplugin_split_statements( $sql ) as $statement ) {
+		$wpdb->query( $statement );
+	}
+} );
+
 // Safe, at export time: record a keyed hash of the SQL the plugin just wrote.
 update_option( 'myplugin_backup_hmac', hash_hmac( 'sha256', $sql, wp_salt( 'auth' ) ), false );
 
@@ -496,6 +513,17 @@ add_action( 'admin_post_myplugin_import', static function () {
 	}
 } );
 ```
+
+**Attack methodology**
+
+Unverified backup import
+
+Security bulletins:
+- CWE-345, Insufficient Verification of Data Authenticity
+- CWE-89, Improper Neutralization of Special Elements used in an SQL Command (SQL Injection)
+- OWASP A08:2021, Software and Data Integrity Failures
+
+- **Writable uploads folder → swapped backup file → administrator runs the import → arbitrary SQL → site takeover.** A file-write bug in another plugin, an upload flaw, or FTP access lets the attacker replace `backup.sql` with statements that create an administrator account or change `default_role`. The administrator then clicks Import in good faith. The nonce and capability checks pass, because the request is genuine, and the SQL runs with the site's full database privileges. Fix: record a keyed hash when the plugin exports the file and verify it with `hash_equals()` before running anything, and store backups where they cannot be modified or downloaded.
 
 ## Code Execution, Uploads, and Files
 
