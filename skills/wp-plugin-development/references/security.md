@@ -455,7 +455,7 @@ Security bulletins:
 
 **Exceptions**
 
-- Raw SQL imports for backup or migration features, limited to files the plugin itself produced or an administrator explicitly supplied, behind a capability check and nonce.
+- Raw SQL imports for backup or migration features, limited to files the plugin itself produced, verified against a keyed hash recorded at export (`hash_hmac()` compared with `hash_equals()`), or an administrator explicitly supplied, behind a capability check and nonce.
 
 ```php
 // Unsafe: any visitor can post SQL, and it runs with the site's database privileges.
@@ -464,9 +464,12 @@ add_action( 'wp_ajax_nopriv_myplugin_import', static function () {
 	$wpdb->query( wp_unslash( $_POST['sql'] ?? '' ) );
 } );
 
-// Safe: an administrator action, checked for a nonce and capability, that reads
-// only a file the plugin's own export wrote. myplugin_read_statements() is a
-// hypothetical parser that returns the statements in that file.
+// Safe, at export time: record a keyed hash of the SQL the plugin just wrote.
+update_option( 'myplugin_backup_hmac', hash_hmac( 'sha256', $sql, wp_salt( 'auth' ) ), false );
+
+// Safe, at import time: an administrator action, checked for a nonce and capability,
+// that runs only a file whose signature matches the one recorded at export.
+// myplugin_split_statements() is a hypothetical parser for the verified SQL.
 add_action( 'admin_post_myplugin_import', static function () {
 	check_admin_referer( 'myplugin_import' );
 	if ( ! current_user_can( 'manage_options' ) ) {
@@ -475,12 +478,19 @@ add_action( 'admin_post_myplugin_import', static function () {
 
 	$uploads = wp_upload_dir();
 	$file    = trailingslashit( $uploads['basedir'] ) . 'myplugin/backup.sql';
-	if ( ! is_readable( $file ) ) {
+	$sql     = is_readable( $file ) ? file_get_contents( $file ) : false;
+	if ( false === $sql ) {
 		wp_die( esc_html__( 'No backup file found.', 'myplugin' ), '', array( 'response' => 404 ) );
 	}
 
+	// A swapped or edited file fails the keyed hash recorded at export time.
+	$expected = (string) get_option( 'myplugin_backup_hmac', '' );
+	if ( ! hash_equals( $expected, hash_hmac( 'sha256', $sql, wp_salt( 'auth' ) ) ) ) {
+		wp_die( esc_html__( 'Operation not allowed.', 'myplugin' ), '', array( 'response' => 403 ) );
+	}
+
 	global $wpdb;
-	foreach ( myplugin_read_statements( $file ) as $statement ) {
+	foreach ( myplugin_split_statements( $sql ) as $statement ) {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared -- Plugin-generated backup, administrator only.
 		$wpdb->query( $statement );
 	}
