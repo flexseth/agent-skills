@@ -315,17 +315,16 @@ add_shortcode( 'myplugin_badge', static function ( $atts ) {
 
 **Prohibited**
 
-- Concatenating user input directly into SQL queries.
-- Using dynamic table or column names from user input without allowlisting.
+- Concatenating user input into SQL.
+- Using PHP database extensions such as `mysqli_*` or `PDO` instead of `$wpdb`.
 - Executing SQL taken from request parameters.
-- Using PHP database extensions such as `mysqli_*` or `PDO` directly, instead of the WordPress `$wpdb` abstraction.
+
 
 **Required**
 
-SQL Queries, Prepared Statements, and Allowlisting:
-
-- Use `$wpdb->prepare()` for every dynamic value; never concatenate input into SQL.
-- Prefer `$wpdb->insert()` / `$wpdb->update()` / `$wpdb->delete()` with a formats array for simple writes.
+- Use `$wpdb` and the WordPress database APIs.
+- Prefer `$wpdb->insert()` / `update()` / `delete()` with a formats array for simple writes.
+- Use `$wpdb->prepare()` for every dynamic value.
 - Generate one placeholder per item in a dynamic list, and handle an empty list before querying.
 - Treat table names, column names, `ORDER BY` keys, and other identifiers from the request as unsafe unless they come from an allowlist. Pass allowlisted identifiers through `%i` (WordPress 6.2+). If the plugin's `Requires at least` is below 6.2, interpolate only the allowlisted constant value.
 
@@ -387,6 +386,8 @@ $wpdb->get_results(
   A private `__clone()` on a singleton only prevents a second instance; it is not a security control.
 - If deserialization of stored data is unavoidable, restrict it: `unserialize( $data, array( 'allowed_classes' => false ) )`.
 
+
+### Hardening Uploads
 ```php
 // Unsafe: persistent data in the plugin folder, with a request-chosen file name.
 file_put_contents( plugin_dir_path( __FILE__ ) . $_POST['name'] . '.php', $data );
@@ -415,6 +416,8 @@ wp_delete_file( $target );
 - Temporary files from `wp_tempnam()`, deleted when the operation ends.
 - Root-level files that an integration requires (for example, a service verification file), created only on an explicit administrator action.
 - SVG uploads, only when sanitized server-side by a maintained sanitizer.
+
+## Modifying Files
 
 ## External Services, Credentials, and Privileged State
 
