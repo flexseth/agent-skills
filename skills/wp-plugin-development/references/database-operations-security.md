@@ -35,7 +35,7 @@ Database Operations:
 
 - [ ] **Pre-6.2 fallback:** the rule says to interpolate only the allowlisted constant value when `Requires at least` is below 6.2 (no `%i`). No example yet. A one-line comment may be enough.
 - [ ] **User-controlled tables:** the TOC lists "working with user-controlled tables," but the identifier sample only lets the request choose the `ORDER BY` column. Show a request-chosen table name going through the allowlist and `%i`.
-- [ ] **Combined sample:** it still interpolates `$in` and `$order` without the `phpcs:ignore` comments the pairs have.
+- [x] **Combined sample:** it interpolates `$in` and `$order`, so it now has the same `phpcs:ignore` comment the pairs have.
 - [ ] **Prohibited list:** the "Executing SQL taken from request parameters" pair was removed as redundant, but the bullet is still there. Decide whether to merge it into the "Concatenating user input into SQL" bullet.
 - [ ] **Backup storage:** the import samples keep `backup.sql` under `uploads/myplugin/`. The Code Execution section says backup archives must be protected from direct download, so add a cross-reference or one line on how the file is protected.
 - [ ] **Acceptance criteria:** tick "SQL uses `$wpdb->prepare()` for values and allowlisted identifiers" in `plugin-security_skill-acceptance-criteria.md`.

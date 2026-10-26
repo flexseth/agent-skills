@@ -436,6 +436,7 @@ $in = implode( ', ', array_fill( 0, count( $ids ), '%d' ) );
 // Safely prepare and execute the SQL query with placeholders and allowlisted identifiers.
 $wpdb->get_results(
 	$wpdb->prepare(
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $in holds only %d placeholders and $order is the constant 'ASC' or 'DESC'.
 		"SELECT * FROM %i WHERE id IN ($in) ORDER BY %i $order",
 		array_merge( array( $wpdb->prefix . 'myplugin_items' ), $ids, array( $orderby ) )
 	)
