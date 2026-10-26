@@ -457,6 +457,36 @@ Security bulletins:
 
 - Raw SQL imports for backup or migration features, limited to files the plugin itself produced or an administrator explicitly supplied, behind a capability check and nonce.
 
+```php
+// Unsafe: any visitor can post SQL, and it runs with the site's database privileges.
+add_action( 'wp_ajax_nopriv_myplugin_import', static function () {
+	global $wpdb;
+	$wpdb->query( wp_unslash( $_POST['sql'] ?? '' ) );
+} );
+
+// Safe: an administrator action, checked for a nonce and capability, that reads
+// only a file the plugin's own export wrote. myplugin_read_statements() is a
+// hypothetical parser that returns the statements in that file.
+add_action( 'admin_post_myplugin_import', static function () {
+	check_admin_referer( 'myplugin_import' );
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( esc_html__( 'Operation not allowed.', 'myplugin' ), '', array( 'response' => 403 ) );
+	}
+
+	$uploads = wp_upload_dir();
+	$file    = trailingslashit( $uploads['basedir'] ) . 'myplugin/backup.sql';
+	if ( ! is_readable( $file ) ) {
+		wp_die( esc_html__( 'No backup file found.', 'myplugin' ), '', array( 'response' => 404 ) );
+	}
+
+	global $wpdb;
+	foreach ( myplugin_read_statements( $file ) as $statement ) {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared -- Plugin-generated backup, administrator only.
+		$wpdb->query( $statement );
+	}
+} );
+```
+
 ## Code Execution, Uploads, and Files
 
 **Prohibited**
