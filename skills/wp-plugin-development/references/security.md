@@ -328,6 +328,33 @@ add_shortcode( 'myplugin_badge', static function ( $atts ) {
 - Generate one placeholder per item in a dynamic list, and handle an empty list before querying.
 - Treat table names, column names, `ORDER BY` keys, and other identifiers from the request as unsafe unless they come from an allowlist. Pass allowlisted identifiers through `%i` (WordPress 6.2+). If the plugin's `Requires at least` is below 6.2, interpolate only the allowlisted constant value.
 
+Shows: use `$wpdb->prepare()` for every dynamic value, and prefer `$wpdb->insert()` / `update()` / `delete()` with a formats array for simple writes.
+
+```php
+// $title and $item_id hold the unslashed, sanitized request values.
+
+// Unsafe: sanitizing does not stop a quote or SQL fragment from changing the query.
+$wpdb->query( "UPDATE {$wpdb->prefix}myplugin_items SET title = '$title' WHERE id = $item_id" );
+
+// Safe: a simple write uses the formats array, and $wpdb->update() prepares the values.
+$wpdb->update(
+	$wpdb->prefix . 'myplugin_items',
+	array( 'title' => $title ),
+	array( 'id' => $item_id ),
+	array( '%s' ),
+	array( '%d' )
+);
+
+// Safe: a read or complex write uses prepare() with one placeholder per value.
+$row = $wpdb->get_row(
+	$wpdb->prepare(
+		"SELECT * FROM {$wpdb->prefix}myplugin_items WHERE id = %d AND title = %s",
+		$item_id,
+		$title
+	)
+);
+```
+
 ```php
 // Unsafe: sanitized, but identifier and list are still interpolated from the request.
 $orderby = sanitize_text_field( wp_unslash( $_GET['orderby'] ?? '' ) );
