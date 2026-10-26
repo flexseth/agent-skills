@@ -355,6 +355,27 @@ $row = $wpdb->get_row(
 );
 ```
 
+Shows: treat table names, column names, and `ORDER BY` keys from the request as unsafe unless they come from an allowlist, and pass them through `%i`.
+
+```php
+// $requested_orderby and $requested_order hold the unslashed, sanitized request values.
+
+// Unsafe: sanitized, but the request still chooses the column.
+$wpdb->get_results( "SELECT * FROM {$wpdb->prefix}myplugin_items ORDER BY $requested_orderby" );
+
+// Safe: the request can only pick from a fixed list, and %i quotes the identifier.
+$orderby = in_array( $requested_orderby, array( 'title', 'created_at' ), true ) ? $requested_orderby : 'created_at';
+$order   = 'asc' === $requested_order ? 'ASC' : 'DESC';
+$wpdb->get_results(
+	$wpdb->prepare(
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $order is the constant 'ASC' or 'DESC'.
+		"SELECT * FROM %i ORDER BY %i $order",
+		$wpdb->prefix . 'myplugin_items',
+		$orderby
+	)
+);
+```
+
 ```php
 // Unsafe: sanitized, but identifier and list are still interpolated from the request.
 $orderby = sanitize_text_field( wp_unslash( $_GET['orderby'] ?? '' ) );
