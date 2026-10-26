@@ -376,6 +376,32 @@ $wpdb->get_results(
 );
 ```
 
+Shows: generate one placeholder per item in a dynamic list, and handle an empty list before querying.
+
+```php
+// $requested_ids holds the unslashed request value.
+
+// Unsafe: the list is sanitized as text and interpolated into the query.
+$ids = sanitize_text_field( $requested_ids );
+$wpdb->get_results( "SELECT * FROM {$wpdb->prefix}myplugin_items WHERE id IN ($ids)" );
+
+// Safe: every item is cast, an empty list stops early, and each id gets a %d placeholder.
+$ids = array_filter( array_map( 'absint', (array) $requested_ids ) );
+if ( ! $ids ) {
+	return array();
+}
+$in = implode( ', ', array_fill( 0, count( $ids ), '%d' ) );
+$wpdb->get_results(
+	$wpdb->prepare(
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $in holds only %d placeholders.
+		"SELECT * FROM {$wpdb->prefix}myplugin_items WHERE id IN ($in)",
+		$ids
+	)
+);
+```
+
+Shows: the rules together. An allowlisted identifier, a fixed direction, and one placeholder per id in a single query.
+
 ```php
 // Unsafe: sanitized, but identifier and list are still interpolated from the request.
 $orderby = sanitize_text_field( wp_unslash( $_GET['orderby'] ?? '' ) );
