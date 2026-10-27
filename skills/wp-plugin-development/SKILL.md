@@ -88,6 +88,7 @@ See:
   - `references/security/db-03-dynamic-lists.md` (`IN (...)` lists)
   - `references/security/db-04-identifiers.md` (`ORDER BY`, table, or column names)
   - `references/security/db-05-sql-imports.md` (backup or import features only)
+  - `references/security/db-06-combined-query.md` (a query with both an `IN (...)` list and a request-chosen sort)
 
 ### 5) Data storage, cron, migrations (if needed)
 
