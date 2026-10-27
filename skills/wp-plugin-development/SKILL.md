@@ -81,7 +81,13 @@ Before shipping, work through the checklist in `references/security.md` for ever
 - Document external services in the readme; don't change other plugins, themes, or updates silently.
 
 See:
-- `references/security.md`
+- `references/security.md` (checklist and cross-cutting rules; read first)
+- Database:
+  - `references/security/db-01-use-wpdb.md` (any code that talks to the database)
+  - `references/security/db-02-prepare-values.md` (any query with a dynamic value)
+  - `references/security/db-03-dynamic-lists.md` (`IN (...)` lists)
+  - `references/security/db-04-identifiers.md` (`ORDER BY`, table, or column names)
+  - `references/security/db-05-sql-imports.md` (backup or import features only)
 
 ### 5) Data storage, cron, migrations (if needed)
 
