@@ -87,8 +87,8 @@ See:
   - `references/security/database/02-prepare-values.md` (any query with a dynamic value)
   - `references/security/database/03-dynamic-lists.md` (`IN (...)` lists)
   - `references/security/database/04-identifiers.md` (`ORDER BY`, table, or column names)
-  - `references/security/database/05-sql-imports.md` (backup or import features only)
-  - `references/security/database/06-combined-query.md` (a query with both an `IN (...)` list and a request-chosen sort)
+  - `references/security/database/05-combined-query.md` (a query with both an `IN (...)` list and a request-chosen sort)
+  - `references/security/database/06-sql-imports.md` (backup or import features only)
 
 ### 5) Data storage, cron, migrations (if needed)
 
